@@ -1,0 +1,43 @@
+name: Release
+
+# Push a `vX.Y.Z` tag to cut a release:
+#   git tag -a v1.0.0 -m "notes v1.0.0" && git push --tags
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # needed to publish the GitHub release
+
+jobs:
+  release:
+    name: build all platforms + publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Build for every platform
+        run: zig build release
+
+      - name: Smoke-test the native binary
+        run: ./zig-out/release/linux-x86_64/notes help
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: notes-${{ github.ref_name }}
+          path: |
+            zig-out/release/*.tar.gz
+            zig-out/release/*/*
+          if-no-files-found: error
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: zig-out/release/*.tar.gz
+          generate_release_notes: true
