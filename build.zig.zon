@@ -1,0 +1,6 @@
+.{
+    .name = .notes,
+    .version = "0.16.0",
+    .paths = .{""},
+    .fingerprint = 0x11ba68c7af88e6f,
+}
